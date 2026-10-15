@@ -961,3 +961,15 @@ footer {
 .guide-source li strong {
   color: #0a463a;
 }
+
+/* Google Drive video player (embedded) */
+.video-frame {
+  height: 420px;
+  border: 0;
+}
+
+@media (max-width: 600px) {
+  .video-frame {
+    height: 240px;
+  }
+}

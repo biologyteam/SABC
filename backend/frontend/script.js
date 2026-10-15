@@ -629,7 +629,9 @@ function renderVideos(container, resources) {
       (resource, index) => `
       <article class="content-card video-card">
         ${
-          resource.download_url
+          resource.embed_url
+            ? `<iframe class="video-player video-frame" src="${escapeAttr(resource.embed_url)}" allow="autoplay; fullscreen" allowfullscreen loading="lazy"></iframe>`
+            : resource.download_url
             ? `
               <video class="video-player" controls preload="metadata">
                 <source

@@ -953,53 +953,20 @@ function toggleResourceExternalUrlField() {
 // This just makes the wait visible so people know it's still working.
 function uploadResourceWithProgress(formData) {
 
-  return new Promise((resolve, reject) => {
+  const wrap = $("#resourceUploadProgressWrap");
+  const bar = $("#resourceUploadProgressBar");
+  const text = $("#resourceUploadProgressText");
 
-    const xhr = new XMLHttpRequest();
+  // The file now travels to Google Drive through the site's server in
+  // one go, so there is no live percentage - just show that it's working.
+  if (wrap) wrap.style.display = "block";
+  if (bar) bar.style.width = "60%";
+  if (text) text.textContent = "Uploading… please wait, big files can take a minute.";
 
-    const wrap = $("#resourceUploadProgressWrap");
-    const bar = $("#resourceUploadProgressBar");
-    const text = $("#resourceUploadProgressText");
-
-    xhr.open("POST", "/api/resources");
-    xhr.withCredentials = true;
-
-    if (wrap) wrap.style.display = "block";
-
-    xhr.upload.addEventListener("progress", (e) => {
-      if (!e.lengthComputable) return;
-      const percent = Math.round((e.loaded / e.total) * 100);
-      if (bar) bar.style.width = `${percent}%`;
-      if (text) text.textContent = `Uploading… ${percent}%`;
+  return api("/api/resources", { method: "POST", body: formData })
+    .finally(() => {
+      if (wrap) wrap.style.display = "none";
     });
-
-    xhr.onload = () => {
-
-      if (wrap) wrap.style.display = "none";
-
-      let data = {};
-      try {
-        data = JSON.parse(xhr.responseText || "{}");
-      } catch {
-        data = {};
-      }
-
-      if (xhr.status >= 200 && xhr.status < 300) {
-        resolve(data);
-      } else {
-        reject(new Error(data.error || "Something went wrong."));
-      }
-    };
-
-    xhr.onerror = () => {
-      if (wrap) wrap.style.display = "none";
-      reject(new Error(
-        "Upload failed — check your internet connection and try again."
-      ));
-    };
-
-    xhr.send(formData);
-  });
 }
 
 

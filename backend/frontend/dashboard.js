@@ -917,7 +917,7 @@ async function loadResources() {
 // Only these types accept a link instead of an uploaded file — books
 // (Campbell, Modern Biology, etc.) are frequently hundreds of MB, far
 // too large to store on the app's own disk.
-const LINKABLE_RESOURCE_TYPES = ["reference", "old_exam", "lo"];
+const LINKABLE_RESOURCE_TYPES = ["reference", "old_exam", "lo", "video"];
 
 // These are single whole items (one combined guide file, one textbook,
 // one old exam, one LO overview document) — not split per Learning

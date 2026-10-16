@@ -610,6 +610,38 @@ function renderResources(container, resources) {
 }
 
 // =========================
+// VIDEO LINK HELPERS (Google Drive / YouTube)
+// =========================
+
+// The link the admin pasted (if any). Falls back to download_url when the
+// server only returns it there and it is clearly a Drive / YouTube link.
+function getVideoLink(resource) {
+  if (resource.external_url) return resource.external_url;
+  const u = resource.download_url || "";
+  return /drive\.google\.com|youtu\.be|youtube\.com/i.test(u) ? u : "";
+}
+
+// Turns a normal share link into a link that can play inside the page.
+function getVideoEmbedUrl(resource) {
+  if (resource.embed_url) return resource.embed_url;
+
+  const link = getVideoLink(resource);
+  if (!link) return "";
+
+  // Google Drive: /file/d/<ID>/view  or  open?id=<ID>  or  uc?id=<ID>
+  let m = link.match(/drive\.google\.com\/file\/d\/([\w-]+)/i) ||
+          link.match(/drive\.google\.com\/(?:open|uc)\?(?:[^#]*&)?id=([\w-]+)/i);
+  if (m) return "https://drive.google.com/file/d/" + m[1] + "/preview";
+
+  // YouTube: watch?v=<ID>, youtu.be/<ID>, shorts/<ID>, embed/<ID>
+  m = link.match(/youtu\.be\/([\w-]{11})/i) ||
+      link.match(/youtube\.com\/(?:watch\?(?:[^#]*&)?v=|shorts\/|embed\/)([\w-]{11})/i);
+  if (m) return "https://www.youtube.com/embed/" + m[1];
+
+  return "";
+}
+
+// =========================
 // VIDEO RESOURCES
 // =========================
 
@@ -629,9 +661,9 @@ function renderVideos(container, resources) {
       (resource, index) => `
       <article class="content-card video-card">
         ${
-          resource.embed_url
-            ? `<iframe class="video-player video-frame" src="${escapeAttr(resource.embed_url)}" allow="autoplay; fullscreen" allowfullscreen loading="lazy"></iframe>`
-            : resource.download_url
+          getVideoEmbedUrl(resource)
+            ? `<iframe class="video-player video-frame" src="${escapeAttr(getVideoEmbedUrl(resource))}" allow="autoplay; fullscreen" allowfullscreen loading="lazy"></iframe>`
+            : resource.download_url && !getVideoLink(resource)
             ? `
               <video class="video-player" controls preload="metadata">
                 <source
@@ -655,7 +687,9 @@ function renderVideos(container, resources) {
                 <a
                   class="open-btn"
                   href="${escapeAttr(
-                    resource.download_url + (resource.download_url.includes("?") ? "&inline=1" : "?inline=1")
+                    getVideoLink(resource)
+                      ? getVideoLink(resource)
+                      : resource.download_url + (resource.download_url.includes("?") ? "&inline=1" : "?inline=1")
                   )}"
                   target="_blank"
                   rel="noopener"
